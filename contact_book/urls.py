@@ -23,6 +23,6 @@ urlpatterns = [
     url(r'^signup/$', 'apis.views.signup'),
     url(r'^add-contact/$', 'apis.views.add_contact'),
     url(r'^edit-contact/(?P<contact_id>[0-9]+)/$', 'apis.views.edit_contact'),
-    ulr(r'^delete-contact/(?P<contact_id>[0-9]+)/$', 'apis.views.delete_contact'),
+    url(r'^delete-contact/(?P<contact_id>[0-9]+)/$', 'apis.views.delete_contact'),
     url(r'^find-contact/$', 'apis.views.find')
 ]

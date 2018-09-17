@@ -145,7 +145,7 @@ class Trie(object):
                         _find(_slot.next)
         with self.lock:
             _find(new_node)
-        return ret
+        return ret, _total
             
 
     def find_exact(self, word):
