@@ -185,7 +185,7 @@ def add_contact(request):
 
     return create_response('contact added')
 
-def edit_contact(request, _id=contact_id):
+def edit_contact(request, contact_id=None):
     """
     edits info, email cannot be edited
     if name is edited old name will be removed from trie
@@ -207,9 +207,9 @@ def edit_contact(request, _id=contact_id):
     except KeyError:
         return create_response('name is required in info', 400)
     try:
-        contact = ContactBook.objects.get(id=_id)
+        contact = ContactBook.objects.get(id=contact_id)
     except ContactBook.DoesNotExist:
-        return create_response('invalid contact_id %s' % _id)
+        return create_response('invalid contact_id %s' % contact_id)
 
     old_name = json.loads(contact.info)['name']
 
@@ -227,9 +227,9 @@ def edit_contact(request, _id=contact_id):
         #log for retry   
     return create_response('contact updated successfully')
 
-def delete_contact(request, _id=contact_id):
+def delete_contact(request, contact_id=None):
     try:
-        contact = ContactBook.objects.get(id=_id)
+        contact = ContactBook.objects.get(id=contact_id)
     except ContactBook.DoesNotExist:
         return create_response('invalid contact_id')
     try:
@@ -241,7 +241,7 @@ def delete_contact(request, _id=contact_id):
     if redis_connection:
         email = contact.email
         name = json.loads(contact.info)['name']
-        redis_connection.rpush(queue, [('remove', 1, name, contact.id))
+        redis_connection.rpush(queue, ('remove', 1, name, contact.id))
         redis_connection.rpush(queue, ('remove', 0, email, contact.id))
     return create_response('contact deleted successfully')
 
