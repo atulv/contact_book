@@ -31,7 +31,6 @@ class Trie(object):
         inserts word in trie and updates the count for nodes at intestion path
         """
         l = len(word) - 1
-
         def _insert(node, idx):
             char = word[idx]
             a = 0
@@ -65,8 +64,8 @@ class Trie(object):
             node.slots[char].count += a
             return a
 
-        node = self.root
         with self.lock:
+            node = self.root
             _insert(node, 0)
 
     def delete(self, word, _id):
@@ -97,8 +96,8 @@ class Trie(object):
             _slot.count -= a
             return a
 
-        node = self.root
         with self.lock:
+            node = self.root
             _delete(node, 0)
 
     def find(self, word, start, count):
@@ -149,16 +148,17 @@ class Trie(object):
             
 
     def find_exact(self, word):
-        node = self.root
-        l = len(word) - 1
-        for i, char in enumerate(word):
-            try:
-                node = node.slots[char]
-                if i<l:
-                    node = node.next
-            except KeyError:
-                return None
-        return node
+        with self.lock:
+            node = self.root
+            l = len(word) - 1
+            for i, char in enumerate(word):
+                try:
+                    node = node.slots[char]
+                    if i<l:
+                        node = node.next
+                except KeyError:
+                    return None
+            return node
             
 
     def insert2(self, word, _id):

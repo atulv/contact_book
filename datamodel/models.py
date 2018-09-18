@@ -16,5 +16,12 @@ class ContactBook(models.Model):
     modified_on = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('UserProfile', related_name='+')
     
+    def to_json(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'info': self.info
+            }
+    
      
 

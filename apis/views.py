@@ -7,11 +7,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from task import Task
+from in_memory_trie import Trie
+#redis_connection = settings.REDIS_CONNECTION
 
-redis_connection = settings.REDIS_CONNECTION
-name_trie = settings.NAME_TRIE
-email_trie = settings.EMAIL_TRIE
-queue = settings.REDIS_QUEUE
+name_trie = Trie()
+email_trie = Trie()
+#queue = settings.REDIS_QUEUE
 
 @csrf_exempt
 def signin(request):
@@ -177,9 +179,13 @@ def add_contact(request):
         return create_response('email is already in use', 400)
     except:
         return create_response('error on adding contact', 400)
-    if redis_connection:
-        redis_connection.rpush(queue, ('add', 0, email, contact.id))
-        redis_connection.rpush(queue, ('add', 1, name, contact.id))    
+    #if redis_connection:
+        #redis_connection.rpush(queue, ('add', 0, email, contact.id))
+        #redis_connection.rpush(queue, ('add', 1, name, contact.id))    
+    task = Task(email_trie, 'add', email, contact.id)
+    task.start()
+    task = Task(name_trie, 'add', name, contact.id)
+    task.start()
     #else:
         #log for retry   
 
@@ -219,12 +225,17 @@ def edit_contact(request, contact_id=None):
     except:
         return create_response('error updating contact', 500)
 
-    if redis_connection:
-        if old_name != name:
-            redis_connection.rpush(queue, ('remove', 1, old_name, contact.id))
-            redis_connection.rpush(query, ('add', 1, name, contact.id))
+    #if redis_connection:
+        #if old_name != name:
+            #redis_connection.rpush(queue, ('remove', 1, old_name, contact.id))
+            #redis_connection.rpush(query, ('add', 1, name, contact.id))
     #else:
         #log for retry   
+    if old_name != name:
+        task = Task(email_trie, 'remove', old_name, contact.id)
+        task.start()
+        task = Task(name_trie, 'add', name, contact.id)
+        task.start()
     return create_response('contact updated successfully')
 
 def delete_contact(request, contact_id=None):
@@ -238,11 +249,15 @@ def delete_contact(request, contact_id=None):
     except:
         return create_response('error in deleting contact', 500)
 
-    if redis_connection:
-        email = contact.email
-        name = json.loads(contact.info)['name']
-        redis_connection.rpush(queue, ('remove', 1, name, contact.id))
-        redis_connection.rpush(queue, ('remove', 0, email, contact.id))
+    #if redis_connection:
+    email = contact.email
+    name = json.loads(contact.info)['name']
+    task = Task(email_trie, 'remove', name, contact.id)
+    task.start()
+    task = Task(name_trie, 'remove', email, contact.id)
+    task.start()
+        #redis_connection.rpush(queue, ('remove', 1, name, contact.id))
+        #redis_connection.rpush(queue, ('remove', 0, email, contact.id))
     return create_response('contact deleted successfully')
 
 
@@ -277,11 +292,11 @@ def find(request):
         return create_response('invalid value for page no', 400)
     start = (page_no-1)*10 + 1
     if query_type == 'name':
-        contact_ids, total = name_trie.find(query_string, start, 10)
+        contact_ids, total = name_trie.find(query, start, 10)
     else:
-        contacts_ids, total = email_trie.find(query_string, start, 10)
+        contact_ids, total = email_trie.find(query, start, 10)
 
-    contacts = ContactBook.objects.filter(id__in=contacts_ids).order_by('id')
+    contacts = ContactBook.objects.filter(id__in=contact_ids).order_by('id')
     resp = []
     for contact in contacts:
         resp.append(contact.to_json())

@@ -10,18 +10,17 @@ if ROOT_FOLDER not in sys.path:
                                                                                   
 from django.conf import settings 
 from task import Task
-from threding import BoundedSemaphore
-
+from threading import BoundedSemaphore
+from apis import views
 redis_connection = settings.REDIS_CONNECTION
-name_trie = settings.NAME_TRIE
-email_trie = settings.EMAIL_TRIE
+name_trie = views.name_trie
+email_trie = views.email_trie
 queue = settings.REDIS_QUEUE
-
 thread_pool = BoundedSemaphore(2)
 
 while True:
-    item = redis_connection.blpop(queue,10)
-    action, task_type, word, _id = item
+    _, item = redis_connection.blpop(queue)
+    action, task_type, word, _id = eval(item)
     if task_type == 0:
         task = Task(email_trie, action, word, _id)
     else:
@@ -29,6 +28,3 @@ while True:
     thread_pool.acquire()
     task.start()
     thread_pool.release()
-
-
-

@@ -107,6 +107,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 REDIS_QUEUE = 'redis_queue'
+print 'atulv'
 try:
     import redis
     REDIS_CONNECTION = redis.Redis()
@@ -114,11 +115,11 @@ except:
     #log exception
     REDIS_CONNECTION = None
 
-try:
-    from in_memory_trie import Trie
-    NAME_TRIE = Trie()
-    EMAIL_TRIE = Trie()
-except:
+#try:
+#    from in_memory_trie import Trie
+#    NAME_TRIE = Trie()
+#    EMAIL_TRIE = Trie()
+#except:
     #log
-    NAME_TRIE = None
-    EMAIL_TRIE = None
+#    NAME_TRIE = None
+#    EMAIL_TRIE = None
