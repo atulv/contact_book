@@ -4,6 +4,7 @@ from django.core.validators import validate_email
 from django.http import HttpResponse, JsonResponse
 from django.db import transaction, IntegrityError
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -48,7 +49,7 @@ def signin(request):
 def signout(request):
     auth_logout(request)
     return create_response('success')
-    
+
 @csrf_exempt
 def signup(request):
     try:
@@ -70,7 +71,7 @@ def signup(request):
         password = request.POST['password']
         password = password.strip()
         if not password:
-            raise ValueError	
+            raise ValueError
     except KeyError:
         return create_response('password is required', 400)
     except ValueError:
@@ -92,9 +93,9 @@ def signup(request):
         except:
             return create_response('error in signup', 500)
 
-    if not errors:
+    if not error:
         user = authenticate(username=email, password=password)
-        auth_login(request, user)
+        #auth_login(request, user)
     else:
         return create_response(error, 400)
 
@@ -126,8 +127,8 @@ def create_user(**params):
         new_user.last_name = first_and_last_name[1].strip()
     new_user.set_password(password)
     new_user.email = email
-    new_user.is_active = False
-    
+    new_user.is_active = True
+
     try:
         new_user.save()
     except IntegrityError:
@@ -159,7 +160,7 @@ def add_contact(request):
         info = request.POST['info']
     except KeyError:
         return create_response('info is blank', 400)
-        
+
     try:
         info_json = json.loads(info)
     except:
@@ -181,13 +182,13 @@ def add_contact(request):
         return create_response('error on adding contact', 400)
     #if redis_connection:
         #redis_connection.rpush(queue, ('add', 0, email, contact.id))
-        #redis_connection.rpush(queue, ('add', 1, name, contact.id))    
+        #redis_connection.rpush(queue, ('add', 1, name, contact.id))
     task = Task(email_trie, 'add', email, contact.id)
     task.start()
     task = Task(name_trie, 'add', name, contact.id)
     task.start()
     #else:
-        #log for retry   
+        #log for retry
 
     return create_response('contact added')
 
@@ -230,7 +231,7 @@ def edit_contact(request, contact_id=None):
             #redis_connection.rpush(queue, ('remove', 1, old_name, contact.id))
             #redis_connection.rpush(query, ('add', 1, name, contact.id))
     #else:
-        #log for retry   
+        #log for retry
     if old_name != name:
         task = Task(email_trie, 'remove', old_name, contact.id)
         task.start()
@@ -279,7 +280,7 @@ def find(request):
         query_type = query_type.strip()
         if query_type not in ('email', 'name'):
             raise ValueError
-             
+
     except KeyError:
         return create_response('query type is required email/name', 400)
     except ValueError:

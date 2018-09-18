@@ -15,14 +15,15 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from apis import views
 
 urlpatterns = [
     #url(r'^admin/', include(admin.site.urls)),
-    url(r'^signin/$', 'apis.views.signin'),
-    url(r'^signout/$', 'apis.views.signout'),
-    url(r'^signup/$', 'apis.views.signup'),
-    url(r'^add-contact/$', 'apis.views.add_contact'),
-    url(r'^edit-contact/(?P<contact_id>[0-9]+)/$', 'apis.views.edit_contact'),
-    url(r'^delete-contact/(?P<contact_id>[0-9]+)/$', 'apis.views.delete_contact'),
-    url(r'^find-contact/$', 'apis.views.find')
+    url(r'^signin/$', views.signin),
+    url(r'^signout/$', views.signout),
+    url(r'^signup/$', views.signup),
+    url(r'^add-contact/$', views.add_contact),
+    url(r'^edit-contact/(?P<contact_id>[0-9]+)/$', views.edit_contact),
+    url(r'^delete-contact/(?P<contact_id>[0-9]+)/$', views.delete_contact),
+    url(r'^find-contact/$', views.find)
 ]

@@ -105,6 +105,8 @@ class Trie(object):
         finds all words with prefix as word
         """
         _slot = self.find_exact(word)
+        if not _slot:
+            return [], 0
         _total = _slot.count
         ret = []
         if _slot.ids:
@@ -145,7 +147,7 @@ class Trie(object):
         with self.lock:
             _find(new_node)
         return ret, _total
-            
+
 
     def find_exact(self, word):
         with self.lock:
@@ -159,7 +161,7 @@ class Trie(object):
                 except KeyError:
                     return None
             return node
-            
+
 
     def insert2(self, word, _id):
         node = self.root

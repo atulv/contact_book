@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+import json
 
 class UserProfile(models.Model):
     user = models.OneToOneField('auth.User', unique=True, related_name='profile')
@@ -15,13 +15,13 @@ class ContactBook(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     modified_on = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('UserProfile', related_name='+')
-    
+
     def to_json(self):
         return {
             'id': self.id,
             'email': self.email,
-            'info': self.info
+            'info': json.loads(self.info)
             }
-    
-     
+
+
 

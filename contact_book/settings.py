@@ -25,7 +25,7 @@ SECRET_KEY = 's94ogc*a9o3(o(f!3!3jrd4#f^$x9-dcic=oet7a&ta6uje&pe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', u'atulverma.pythonanywhere.com']
 
 
 # Application definition
@@ -79,13 +79,20 @@ WSGI_APPLICATION = 'contact_book.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'plivo',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '',
-        'POST': '',
+        'NAME': 'atulverma$contact_book',
+        'USER': 'atulverma',
+        'PASSWORD': 'helloworld',
+        'HOST': 'atulverma.mysql.pythonanywhere-services.com',
+        'PORT': '',
     }
 }
+
+AUTH_PROFILE_MODULE = 'datamodel.UserProfile'
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 
 
 # Internationalization
@@ -107,7 +114,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 REDIS_QUEUE = 'redis_queue'
-print 'atulv'
+
 try:
     import redis
     REDIS_CONNECTION = redis.Redis()
