@@ -24,7 +24,7 @@ class Trie(object):
     """
     def __init__(self):
         self.root = Node()
-        self.lock = Lock()
+        self.lock = Lock() #locking can be moved to node level for more concurrency.
 
     def insert(self, word, _id):
         """
