@@ -12,8 +12,8 @@ from task import Task
 from in_memory_trie import Trie
 #redis_connection = settings.REDIS_CONNECTION
 
-name_trie = Trie()
 email_trie = Trie()
+name_trie = Trie()
 #queue = settings.REDIS_QUEUE
 
 @csrf_exempt
@@ -191,7 +191,8 @@ def add_contact(request):
         #log for retry
 
     return create_response('contact added')
-
+@csrf_exempt
+@login_required
 def edit_contact(request, contact_id=None):
     """
     edits info, email cannot be edited
@@ -238,7 +239,8 @@ def edit_contact(request, contact_id=None):
         task = Task(name_trie, 'add', name, contact.id)
         task.start()
     return create_response('contact updated successfully')
-
+@csrf_exempt
+@login_required
 def delete_contact(request, contact_id=None):
     try:
         contact = ContactBook.objects.get(id=contact_id)
@@ -253,15 +255,15 @@ def delete_contact(request, contact_id=None):
     #if redis_connection:
     email = contact.email
     name = json.loads(contact.info)['name']
-    task = Task(email_trie, 'remove', name, contact.id)
+    task = Task(email_trie, 'remove', email, contact.id)
     task.start()
-    task = Task(name_trie, 'remove', email, contact.id)
+    task = Task(name_trie, 'remove', name, contact.id)
     task.start()
         #redis_connection.rpush(queue, ('remove', 1, name, contact.id))
         #redis_connection.rpush(queue, ('remove', 0, email, contact.id))
     return create_response('contact deleted successfully')
 
-
+@login_required
 def find(request):
     'prefix search by name and email'
     try:
@@ -291,13 +293,13 @@ def find(request):
         page_no = int(page_no)
     except ValueError:
         return create_response('invalid value for page no', 400)
-    start = (page_no-1)*10 + 1
+    start = (page_no-1)*10
     if query_type == 'name':
         contact_ids, total = name_trie.find(query, start, 10)
     else:
         contact_ids, total = email_trie.find(query, start, 10)
 
-    contacts = ContactBook.objects.filter(id__in=contact_ids).order_by('id')
+    contacts = ContactBook.objects.filter(id__in=contact_ids, is_active=True).order_by('id')
     resp = []
     for contact in contacts:
         resp.append(contact.to_json())
